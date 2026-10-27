@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Mail\WeeklySummaryMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Notification;
 
 final class WeeklySummaryNotification extends Notification implements ShouldQueue
@@ -24,8 +25,6 @@ final class WeeklySummaryNotification extends Notification implements ShouldQueu
     ) {}
 
     /**
-     * Get the notification's delivery channels.
-     *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -33,20 +32,14 @@ final class WeeklySummaryNotification extends Notification implements ShouldQueu
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): Mailable
     {
-        return (new MailMessage)
-            ->subject('📊 Votre récapitulatif hebdomadaire DevPulse ('.$this->totalHours.'h)')
-            ->view('emails.weekly-summary', [
-                'user' => $notifiable,
-                'totalHours' => $this->totalHours,
-                'pomodorosCount' => $this->pomodorosCount,
-                'completedTasksCount' => $this->completedTasksCount,
-                'topProjects' => $this->topProjects,
-                'analyticsUrl' => url('/dashboard'),
-            ]);
+        return (new WeeklySummaryMail(
+            user: $notifiable,
+            totalHours: $this->totalHours,
+            pomodorosCount: $this->pomodorosCount,
+            completedTasksCount: $this->completedTasksCount,
+            topProjects: $this->topProjects,
+        ))->to($notifiable->email);
     }
 }

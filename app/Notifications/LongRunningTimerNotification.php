@@ -10,7 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-final class AbandonedTimerNotification extends Notification implements ShouldQueue
+final class LongRunningTimerNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -40,7 +40,7 @@ final class AbandonedTimerNotification extends Notification implements ShouldQue
 
         return (new MailMessage)
             ->subject('⏱️ Votre chronomètre DevPulse tourne toujours ('.$hours.'h)')
-            ->view('emails.abandoned-timer', [
+            ->view('emails.long-running-timer', [
                 'user' => $notifiable,
                 'taskTitle' => $this->timeEntry->task?->title ?? $this->timeEntry->description ?? 'Session de travail',
                 'hours' => $hours,

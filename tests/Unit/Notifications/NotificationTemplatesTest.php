@@ -6,7 +6,7 @@ namespace Tests\Unit\Notifications;
 
 use App\Models\TimeEntry;
 use App\Models\User;
-use App\Notifications\AbandonedTimerNotification;
+use App\Notifications\LongRunningTimerNotification;
 use App\Notifications\WeeklySummaryNotification;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,7 +29,7 @@ final class NotificationTemplatesTest extends TestCase
         $this->assertStringContainsString('⚡', $html);
     }
 
-    public function test_abandoned_timer_notification_renders_properly(): void
+    public function test_long_running_timer_notification_renders_properly(): void
     {
         $user = User::factory()->create(['name' => 'Sarah Connor']);
         $timeEntry = TimeEntry::factory()->create([
@@ -39,7 +39,7 @@ final class NotificationTemplatesTest extends TestCase
             'description' => 'Fix Docker network bug',
         ]);
 
-        $notification = new AbandonedTimerNotification($timeEntry);
+        $notification = new LongRunningTimerNotification($timeEntry);
         $mail = $notification->toMail($user);
 
         $html = (string) $mail->render();

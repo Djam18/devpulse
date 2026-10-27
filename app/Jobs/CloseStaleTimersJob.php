@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Events\TimerStopped;
 use App\Models\TimeEntry;
+use App\Notifications\LongRunningTimerNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -42,6 +43,8 @@ final class CloseStaleTimersJob implements ShouldQueue
             ]);
 
             event(new TimerStopped($entry));
+
+            $entry->user->notify(new LongRunningTimerNotification($entry));
 
             Log::warning('Stale active timer capped automatically by CloseStaleTimersJob', [
                 'time_entry_id' => $entry->id,

@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        background-color: #FFFFFF;
+        color: #1A1523;
+    }
+
+    html.dark {
+        background-color: #1F1D2B;
+        color: #F0EDF5;
+    }
+
+    body {
+        background-color: inherit;
+        color: inherit;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    }
+
+    /* Tabular figures for numerical and timer displays */
+    .font-mono {
+        font-variant-numeric: tabular-nums;
+    }
+}

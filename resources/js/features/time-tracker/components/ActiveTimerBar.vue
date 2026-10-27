@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { Clock, Play, Square } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
+import { AlertCircle, Clock, Play, Square } from 'lucide-vue-next';
 
 import { useTimerStore } from '@/features/time-tracker/store';
 
 const timerStore = useTimerStore();
 
 const descriptionInput = ref('');
+
+const isOverlong = computed(() => {
+    return timerStore.isRunning && timerStore.elapsedSeconds >= 8 * 3600;
+});
 
 async function handleToggleTimer(): Promise<void> {
     if (timerStore.isRunning) {
@@ -79,10 +83,24 @@ onMounted(() => {
         <!-- Ticker duration display -->
         <div
             v-if="timerStore.isRunning"
-            class="flex items-center gap-1.5 rounded-xl bg-peach-100/80 px-3 py-1 font-mono text-sm font-bold text-peach-800 dark:bg-peach-950/60 dark:text-peach-300 shrink-0 shadow-inner"
+            class="flex items-center gap-2"
         >
-            <span class="inline-block h-2 w-2 rounded-full bg-peach-500 animate-pulse"></span>
-            <span>{{ timerStore.formattedElapsed }}</span>
+            <div
+                class="flex items-center gap-1.5 rounded-xl bg-peach-100/80 px-3 py-1 font-mono text-sm font-bold text-peach-800 dark:bg-peach-950/60 dark:text-peach-300 shrink-0 shadow-inner"
+            >
+                <span class="inline-block h-2 w-2 rounded-full bg-peach-500 animate-pulse"></span>
+                <span>{{ timerStore.formattedElapsed }}</span>
+            </div>
+
+            <!-- Overlong alert indicator (> 8h) -->
+            <span
+                v-if="isOverlong"
+                title="Timer has been running for over 8 hours. Consider stopping or adjusting."
+                class="hidden sm:inline-flex items-center gap-1 rounded-lg bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 animate-pulse shrink-0"
+            >
+                <AlertCircle class="h-3 w-3" />
+                <span>&gt; 8h</span>
+            </span>
         </div>
 
         <!-- Start / Stop Action Button (Direction D: Start = Plum, Stop = Peach) -->

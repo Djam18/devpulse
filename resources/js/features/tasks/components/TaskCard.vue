@@ -40,11 +40,20 @@ async function handleStartTimer(): Promise<void> {
 async function handleMoveStatus(newStatus: TaskStatus): Promise<void> {
     await taskStore.changeStatus(props.task.id, newStatus);
 }
+
+function handleDragStart(e: DragEvent): void {
+    if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(props.task.id));
+    }
+}
 </script>
 
 <template>
     <div
-        class="group relative rounded-xl border border-appborder-light bg-white p-4 shadow-xs transition-all duration-200 hover:border-plum-300 hover:shadow-md dark:border-appborder-dark dark:bg-surface-dark dark:hover:border-plum-800"
+        draggable="true"
+        class="group relative rounded-xl border border-appborder-light bg-white p-4 shadow-xs transition-all duration-200 hover:border-plum-300 hover:shadow-md dark:border-appborder-dark dark:bg-surface-dark dark:hover:border-plum-800 cursor-grab active:cursor-grabbing select-none"
+        @dragstart="handleDragStart"
     >
         <!-- Top bar: Priority & Project Tag -->
         <div class="flex items-center justify-between gap-2">

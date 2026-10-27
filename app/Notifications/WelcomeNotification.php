@@ -30,10 +30,9 @@ final class WelcomeNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('⚡ Bienvenue sur DevPulse !')
-            ->greeting('Bonjour '.$notifiable->name.',')
-            ->line('Votre compte DevPulse a été configuré avec succès.')
-            ->line('Vous pouvez dès maintenant suivre votre temps de code, gérer votre Kanban de sprint et booster votre concentration avec Pomodoro.')
-            ->action('Accéder à mon tableau de bord', url('/dashboard'))
-            ->line('Bonne session de code haute vélocité !');
+            ->view('emails.welcome', [
+                'user' => $notifiable,
+                'dashboardUrl' => url('/dashboard'),
+            ]);
     }
 }

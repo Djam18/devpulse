@@ -1,0 +1,73 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devpulse-app
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      APP_NAME: DevPulse
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8001
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: devpulse
+      DB_USERNAME: admin
+      DB_PASSWORD: admin
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      SANCTUM_STATEFUL_DOMAINS: localhost:8001,127.0.0.1:8001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: devpulse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: devpulse
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - devpulse_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d devpulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: devpulse-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: devpulse-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+
+volumes:
+  devpulse_db_data:
+    driver: local

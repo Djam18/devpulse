@@ -1,0 +1,106 @@
+name: DevPulse CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  backend-tests:
+    name: PHP Tests & Code Quality
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: devpulse_test
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: secret_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, bcmath, curl, zip
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare environment configuration
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Database Migrations
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: devpulse_test
+          DB_USERNAME: admin
+          DB_PASSWORD: secret_ci_password
+          GITHUB_CLIENT_ID: dummy_github_client_id_for_ci
+          GITHUB_CLIENT_SECRET: dummy_github_client_secret_for_ci
+          GITHUB_REDIRECT_URI: http://localhost:8001/auth/github/callback
+        run: php artisan migrate --force
+
+      - name: Check code formatting (Laravel Pint)
+        run: vendor/bin/pint --test
+
+      - name: Run PHPUnit Feature & Unit test suite
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: devpulse_test
+          DB_USERNAME: admin
+          DB_PASSWORD: secret_ci_password
+          GITHUB_CLIENT_ID: dummy_github_client_id_for_ci
+          GITHUB_CLIENT_SECRET: dummy_github_client_secret_for_ci
+          GITHUB_REDIRECT_URI: http://localhost:8001/auth/github/callback
+        run: vendor/bin/phpunit --colors=always
+
+  frontend-build:
+    name: Frontend TypeScript & Vite Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Typecheck and compile assets (Vite + vue-tsc)
+        run: npm run build

@@ -22,7 +22,7 @@ final class GitHubAuthTest extends TestCase
         $response->assertRedirect();
         $location = (string) $response->headers->get('Location');
         $this->assertStringContainsString('github.com/login/oauth/authorize', $location);
-        $this->assertStringContainsString('scope=read%3Auser+user%3Aemail', $location);
+        $this->assertStringContainsString('scope=user%3Aemail%2Cread%3Auser', $location);
     }
 
     public function test_new_user_can_authenticate_via_github_callback_with_null_password(): void

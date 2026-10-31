@@ -206,4 +206,43 @@ class TaskFlowTest extends TestCase
         $response->assertForbidden();
         $this->assertDatabaseHas('tasks', ['id' => $task->id]);
     }
+
+    public function test_user_can_reorder_tasks_vertically(): void
+    {
+        $user = User::factory()->create();
+        $task1 = Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::Todo, 'order_column' => 0]);
+        $task2 = Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::Todo, 'order_column' => 1]);
+        $task3 = Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::Todo, 'order_column' => 2]);
+
+        $response = $this->actingAs($user)->postJson(route('api.tasks.reorder'), [
+            'task_ids' => [$task3->id, $task1->id, $task2->id],
+            'status' => 'todo',
+        ]);
+
+        $response->assertOk();
+
+        $this->assertEquals(0, $task3->fresh()->order_column);
+        $this->assertEquals(1, $task1->fresh()->order_column);
+        $this->assertEquals(2, $task2->fresh()->order_column);
+    }
+
+    public function test_reordering_does_not_affect_other_users_tasks(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+
+        $taskA = Task::factory()->create(['user_id' => $userA->id, 'order_column' => 5]);
+        $taskB = Task::factory()->create(['user_id' => $userB->id, 'order_column' => 9]);
+
+        $response = $this->actingAs($userA)->postJson(route('api.tasks.reorder'), [
+            'task_ids' => [$taskB->id, $taskA->id],
+        ]);
+
+        $response->assertOk();
+
+        // User A task is updated to index 1
+        $this->assertEquals(1, $taskA->fresh()->order_column);
+        // User B task remains untouched at index 9
+        $this->assertEquals(9, $taskB->fresh()->order_column);
+    }
 }

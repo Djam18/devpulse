@@ -25,3 +25,7 @@ export async function updateTaskStatus(id: number, status: TaskStatus): Promise<
 export async function deleteTask(id: number): Promise<void> {
     await axios.delete(`/api/v1/tasks/${id}`);
 }
+
+export async function reorderTasks(taskIds: number[], status?: TaskStatus): Promise<void> {
+    await axios.post('/api/v1/tasks/reorder', { task_ids: taskIds, status });
+}

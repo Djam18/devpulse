@@ -13,6 +13,7 @@ export interface Task {
     description: string | null;
     priority: TaskPriority;
     status: TaskStatus;
+    order_column?: number;
     due_date: string | null;
     estimated_pomodoros: number;
     completed_pomodoros: number;

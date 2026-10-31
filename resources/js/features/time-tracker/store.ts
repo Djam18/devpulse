@@ -2,7 +2,7 @@ import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
 import * as timerApi from '@/features/time-tracker/api';
-import type { StartTimerPayload, TimeEntry } from '@/features/time-tracker/types';
+import type { LogManualTimePayload, StartTimerPayload, TimeEntry } from '@/features/time-tracker/types';
 
 export const useTimerStore = defineStore('timer', () => {
     const activeEntry = ref<TimeEntry | null>(null);
@@ -102,6 +102,19 @@ export const useTimerStore = defineStore('timer', () => {
         }
     }
 
+    async function logManual(payload: LogManualTimePayload): Promise<TimeEntry> {
+        try {
+            isLoading.value = true;
+            const entry = await timerApi.logManualTime(payload);
+            return entry;
+        } catch (error) {
+            console.error('Failed to log manual time:', error);
+            throw error;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
     return {
         activeEntry,
         elapsedSeconds,
@@ -111,5 +124,6 @@ export const useTimerStore = defineStore('timer', () => {
         loadActiveTimer,
         start,
         stop,
+        logManual,
     };
 });

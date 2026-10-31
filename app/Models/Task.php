@@ -28,6 +28,7 @@ class Task extends Model
         'description',
         'priority',
         'status',
+        'order_column',
         'due_date',
         'estimated_pomodoros',
         'completed_pomodoros',
@@ -43,6 +44,7 @@ class Task extends Model
         return [
             'status' => TaskStatus::class,
             'priority' => TaskPriority::class,
+            'order_column' => 'integer',
             'due_date' => 'date',
             'estimated_pomodoros' => 'integer',
             'completed_pomodoros' => 'integer',

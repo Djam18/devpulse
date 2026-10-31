@@ -2,11 +2,14 @@
 import { computed } from 'vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import { useI18n } from '@/composables/useI18n';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
     status?: string;
 }>();
+
+const { t } = useI18n();
 
 const form = useForm({});
 
@@ -21,38 +24,43 @@ const verificationLinkSent = computed(
 
 <template>
     <GuestLayout>
-        <Head title="Email Verification" />
+        <Head :title="t('auth.verifyEmail.title')" />
 
-        <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            Thanks for signing up! Before getting started, could you verify your
-            email address by clicking on the link we just emailed to you? If you
-            didn't receive the email, we will gladly send you another.
+        <div class="mb-4 text-center">
+            <h1 class="text-xl font-black tracking-tight text-gray-900 dark:text-gray-100">
+                {{ t('auth.verifyEmail.heading') }}
+            </h1>
+        </div>
+
+        <div class="mb-4 text-xs text-gray-600 dark:text-gray-400">
+            {{ t('auth.verifyEmail.description') }}
         </div>
 
         <div
-            class="mb-4 text-sm font-medium text-green-600 dark:text-green-400"
+            class="mb-4 rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
             v-if="verificationLinkSent"
         >
-            A new verification link has been sent to the email address you
-            provided during registration.
+            {{ t('auth.verifyEmail.linkSent') }}
         </div>
 
-        <form @submit.prevent="submit">
-            <div class="mt-4 flex items-center justify-between">
+        <form @submit.prevent="submit" class="space-y-4">
+            <div class="flex items-center justify-between">
                 <PrimaryButton
+                    class="rounded-2xl bg-plum-700 py-2.5 px-4 text-xs font-bold text-white shadow-md shadow-plum-700/20 hover:bg-plum-800 dark:bg-plum-400 dark:text-gray-950 dark:hover:bg-plum-300"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Resend Verification Email
+                    {{ t('auth.verifyEmail.resendButton') }}
                 </PrimaryButton>
 
                 <Link
                     :href="route('logout')"
                     method="post"
                     as="button"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
-                    >Log Out</Link
+                    class="rounded-xl px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                 >
+                    {{ t('auth.verifyEmail.logoutButton') }}
+                </Link>
             </div>
         </form>
     </GuestLayout>

@@ -86,6 +86,21 @@ export const useTaskStore = defineStore('tasks', () => {
         tasks.value = tasks.value.filter((t) => t.id !== id);
     }
 
+    async function reorder(taskIds: number[], status?: TaskStatus): Promise<void> {
+        // Optimistically update status and order_column locally
+        taskIds.forEach((id, index) => {
+            const task = tasks.value.find((t) => t.id === id);
+            if (task) {
+                task.order_column = index;
+                if (status) {
+                    task.status = status;
+                }
+            }
+        });
+
+        await taskApi.reorderTasks(taskIds, status);
+    }
+
     return {
         tasks,
         isLoading,
@@ -99,6 +114,7 @@ export const useTaskStore = defineStore('tasks', () => {
         create,
         update,
         changeStatus,
+        reorder,
         remove,
     };
 });

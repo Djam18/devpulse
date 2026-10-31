@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { AlertCircle, Clock, Play, Square } from 'lucide-vue-next';
+import { AlertCircle, CalendarPlus, Clock, Play, Square } from 'lucide-vue-next';
 
+import ManualTimeModal from '@/features/time-tracker/components/ManualTimeModal.vue';
 import { useTimerStore } from '@/features/time-tracker/store';
 
 const timerStore = useTimerStore();
 
 const descriptionInput = ref('');
+const isManualModalOpen = ref(false);
 
 const isOverlong = computed(() => {
     return timerStore.isRunning && timerStore.elapsedSeconds >= 8 * 3600;
@@ -103,6 +105,18 @@ onMounted(() => {
             </span>
         </div>
 
+        <!-- Manual Log Trigger (Idle only) -->
+        <button
+            v-if="!timerStore.isRunning"
+            type="button"
+            title="Log past time entry manually"
+            class="flex items-center gap-1 rounded-xl border border-appborder-light px-2.5 py-1.5 text-xs font-semibold text-gray-600 shadow-xs hover:border-plum-400 hover:text-plum-700 dark:border-appborder-dark dark:text-gray-400 dark:hover:border-plum-500 dark:hover:text-plum-300 transition-all shrink-0"
+            @click="isManualModalOpen = true"
+        >
+            <CalendarPlus class="h-3.5 w-3.5" />
+            <span class="hidden md:inline">Log Past</span>
+        </button>
+
         <!-- Start / Stop Action Button (Direction D: Start = Plum, Stop = Peach) -->
         <button
             type="button"
@@ -124,5 +138,12 @@ onMounted(() => {
                 <span>Start</span>
             </template>
         </button>
+
+        <!-- Retroactive Manual Time Modal -->
+        <ManualTimeModal
+            :show="isManualModalOpen"
+            @close="isManualModalOpen = false"
+            @saved="timerStore.loadActiveTimer"
+        />
     </div>
 </template>

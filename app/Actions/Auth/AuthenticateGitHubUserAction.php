@@ -26,7 +26,7 @@ final readonly class AuthenticateGitHubUserAction
         // 1. Refuse account creation if GitHub does not provide a verified email
         if (empty($email)) {
             throw new GitHubEmailMissingException(
-                'Votre compte GitHub ne partage aucune adresse e-mail vérifiée. Veuillez autoriser l\'accès à votre e-mail pour créer votre compte.'
+                'Votre compte GitHub ne partage aucune adresse e-mail publique ou vérifiée. Veuillez autoriser l\'accès à votre e-mail dans vos paramètres GitHub ou le rendre visible pour continuer.'
             );
         }
 

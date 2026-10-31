@@ -44,6 +44,25 @@ class StoreTaskRequest extends FormRequest
     }
 
     /**
+     * Get custom error messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'Le titre de la tâche est obligatoire.',
+            'title.max' => 'Le titre ne peut pas dépasser 255 caractères.',
+            'project_id.exists' => 'Le projet sélectionné n’existe pas ou ne vous appartient pas.',
+            'priority.enum' => 'La priorité sélectionnée est invalide.',
+            'status.enum' => 'Le statut sélectionné est invalide.',
+            'due_date.date' => 'La date d’échéance doit être une date valide.',
+            'estimated_pomodoros.min' => 'L’estimation doit être d’au moins 1 pomodoro.',
+            'estimated_pomodoros.max' => 'L’estimation ne peut pas dépasser 20 pomodoros.',
+        ];
+    }
+
+    /**
      * Convert request to DTO.
      */
     public function toData(): TaskData

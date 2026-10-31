@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Tasks\CompletePomodoroAction;
 use App\Actions\Tasks\CreateTaskAction;
 use App\Actions\Tasks\DeleteTaskAction;
+use App\Actions\Tasks\ReorderTasksAction;
 use App\Actions\Tasks\UpdateTaskAction;
 use App\Actions\Tasks\UpdateTaskStatusAction;
+use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tasks\StoreTaskRequest;
 use App\Http\Requests\Tasks\UpdateTaskRequest;
@@ -40,7 +43,9 @@ class TaskController extends Controller
             $query->where('status', $request->string('status')->value());
         }
 
-        $tasks = $query->orderBy('created_at', 'desc')->get();
+        $tasks = $query->orderBy('order_column', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return TaskResource::collection($tasks);
     }
@@ -101,14 +106,61 @@ class TaskController extends Controller
     }
 
     /**
+     * Increment completed pomodoros count for the task.
+     */
+    public function completePomodoro(
+        Task $task,
+        CompletePomodoroAction $action
+    ): TaskResource {
+        Gate::authorize('update', $task);
+
+        $updatedTask = $action->execute($task);
+
+        return new TaskResource($updatedTask);
+    }
+
+    /**
+     * Reorder tasks vertically within or across columns.
+     */
+    public function reorder(
+        Request $request,
+        ReorderTasksAction $action
+    ): JsonResponse {
+        $validated = $request->validate([
+            'task_ids' => ['required', 'array'],
+            'task_ids.*' => ['required', 'integer'],
+            'status' => ['nullable', 'string', 'in:todo,in_progress,done'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $status = isset($validated['status'])
+            ? TaskStatus::from($validated['status'])
+            : null;
+
+        /** @var list<int> $taskIds */
+        $taskIds = $validated['task_ids'];
+
+        $action->execute($user, $taskIds, $status);
+
+        return response()->json([
+            'message' => "L'organisation de vos tâches a été mise à jour avec succès, {$user->name}.",
+        ]);
+    }
+
+    /**
      * Remove the specified task.
      */
     public function destroy(Task $task, DeleteTaskAction $action): JsonResponse
     {
         Gate::authorize('delete', $task);
 
+        $taskTitle = $task->title;
         $action->execute($task);
 
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => "La tâche « {$taskTitle} » a été supprimée avec succès.",
+        ]);
     }
 }

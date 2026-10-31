@@ -37,7 +37,7 @@ final class GitHubAuthController extends Controller
         // Handle user cancellation or error from GitHub OAuth screen
         if ($request->has('error') || ! $request->has('code')) {
             return redirect()->route('login')->withErrors([
-                'github' => 'La connexion avec GitHub a été annulée.',
+                'github' => 'La connexion avec GitHub a été annulée. Vous pouvez réessayer à tout moment.',
             ]);
         }
 
@@ -58,7 +58,7 @@ final class GitHubAuthController extends Controller
             report($e);
 
             return redirect()->route('login')->withErrors([
-                'github' => 'Impossible de contacter GitHub. Veuillez réessayer.',
+                'github' => 'Impossible de contacter GitHub pour le moment. Veuillez vérifier votre connexion et réessayer.',
             ]);
         }
 

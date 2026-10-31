@@ -36,6 +36,25 @@ class LogManualTimeRequest extends FormRequest
     }
 
     /**
+     * Get custom error messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'started_at.required' => 'L’heure de début est obligatoire.',
+            'started_at.date' => 'L’heure de début doit être une date valide.',
+            'ended_at.required' => 'L’heure de fin est obligatoire.',
+            'ended_at.date' => 'L’heure de fin doit être une date valide.',
+            'ended_at.after_or_equal' => 'L’heure de fin doit être postérieure ou égale à l’heure de début.',
+            'project_id.exists' => 'Le projet sélectionné n’existe pas ou ne vous appartient pas.',
+            'task_id.exists' => 'La tâche sélectionnée n’existe pas ou ne vous appartient pas.',
+            'description.max' => 'La description ne peut pas dépasser 255 caractères.',
+        ];
+    }
+
+    /**
      * Map validated data to an immutable DTO.
      */
     public function toDTO(): LogManualTimeData

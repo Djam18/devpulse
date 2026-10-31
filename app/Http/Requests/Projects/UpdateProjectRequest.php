@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Requests\Projects;
 
 use App\DTOs\Projects\ProjectData;
-use App\Enums\ProjectStatus;
-use App\Rules\HexColorRule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class UpdateProjectRequest extends FormRequest
+class UpdateProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,24 +17,24 @@ final class UpdateProjectRequest extends FormRequest
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'color' => ['sometimes', 'required', 'string', new HexColorRule],
-            'estimated_hours' => ['nullable', 'numeric', 'min:0', 'max:9999.99'],
+            'name' => ['required', 'string', 'max:255'],
+            'color' => ['nullable', 'string', 'regex:/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'],
             'client_id' => [
                 'nullable',
                 'integer',
                 Rule::exists('clients', 'id')->where('user_id', $this->user()?->id),
             ],
-            'status' => ['sometimes', Rule::enum(ProjectStatus::class)],
+            'estimated_hours' => ['nullable', 'numeric', 'min:0', 'max:99999.99'],
+            'status' => ['nullable', 'string', 'in:active,archived,completed'],
         ];
     }
 
-    public function toDTO(): ProjectData
+    public function toData(): ProjectData
     {
         return ProjectData::fromArray($this->validated());
     }

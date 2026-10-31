@@ -74,6 +74,28 @@ class Project extends Model
     }
 
     /**
+     * Get the total consumed hours from completed time entries.
+     */
+    public function consumedHours(): float
+    {
+        $seconds = (int) $this->timeEntries()->sum('duration_seconds');
+
+        return round($seconds / 3600, 1);
+    }
+
+    /**
+     * Get the project budget burn rate percentage.
+     */
+    public function burnRate(): ?float
+    {
+        if (! $this->estimated_hours || (float) $this->estimated_hours <= 0) {
+            return null;
+        }
+
+        return round(($this->consumedHours() / (float) $this->estimated_hours) * 100, 1);
+    }
+
+    /**
      * Get the tasks for the project.
      *
      * @return HasMany<Task, $this>

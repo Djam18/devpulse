@@ -4,7 +4,9 @@ import { Plus } from 'lucide-vue-next';
 
 import type { Task, TaskStatus } from '@/features/tasks/types';
 import TaskCard from '@/features/tasks/components/TaskCard.vue';
+import EmptyState from '@/Components/ui/EmptyState.vue';
 import { useTaskStore } from '@/features/tasks/store';
+import { useI18n } from '@/composables/useI18n';
 
 const props = defineProps<{
     status: TaskStatus;
@@ -19,6 +21,7 @@ const emit = defineEmits<{
     (e: 'newTask', status: TaskStatus): void;
 }>();
 
+const { t } = useI18n();
 const taskStore = useTaskStore();
 const isDragOver = ref(false);
 
@@ -33,15 +36,26 @@ function handleDragLeave(e: DragEvent): void {
     isDragOver.value = false;
 }
 
-async function handleDrop(e: DragEvent): Promise<void> {
+async function handleDrop(e: DragEvent, targetTaskId?: number): Promise<void> {
     isDragOver.value = false;
     const rawId = e.dataTransfer?.getData('text/plain');
-    if (rawId) {
-        const taskId = parseInt(rawId, 10);
-        if (!isNaN(taskId)) {
-            await taskStore.changeStatus(taskId, props.status);
+    if (!rawId) return;
+    const droppedId = parseInt(rawId, 10);
+    if (isNaN(droppedId)) return;
+
+    const currentIds = props.tasks.map((t) => t.id).filter((id) => id !== droppedId);
+    if (targetTaskId !== undefined) {
+        const targetIndex = currentIds.indexOf(targetTaskId);
+        if (targetIndex !== -1) {
+            currentIds.splice(targetIndex, 0, droppedId);
+        } else {
+            currentIds.push(droppedId);
         }
+    } else {
+        currentIds.push(droppedId);
     }
+
+    await taskStore.reorder(currentIds, props.status);
 }
 </script>
 
@@ -77,7 +91,7 @@ async function handleDrop(e: DragEvent): Promise<void> {
             <!-- Add Task to this column button -->
             <button
                 type="button"
-                title="Add task to this column"
+                :title="title"
                 class="rounded-lg p-1 text-gray-400 transition-colors hover:bg-white hover:text-plum-700 dark:hover:bg-surface-dark dark:hover:text-plum-300"
                 @click="emit('newTask', status)"
             >
@@ -93,15 +107,22 @@ async function handleDrop(e: DragEvent): Promise<void> {
                 :task="task"
                 @edit="(t) => emit('editTask', t)"
                 @delete="(id) => emit('deleteTask', id)"
+                @drop.stop.prevent="handleDrop($event, task.id)"
             />
 
-            <!-- Empty column placeholder -->
-            <div
+            <!-- Empty column educational state -->
+            <EmptyState
                 v-if="tasks.length === 0"
-                class="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-appborder-light py-8 text-center text-xs text-gray-400 dark:border-appborder-dark dark:text-gray-500"
+                compact
+                :title="`Aucune tâche ${title.toLowerCase()}`"
+                :description="status === 'todo' ? 'Créez votre première tâche pour lancer votre sprint.' : 'Glissez-déposez une carte ici pour mettre à jour son statut.'"
+                :action-label="status === 'todo' ? '+ Ajouter' : undefined"
+                @action="emit('newTask', status)"
             >
-                <span>No tasks in {{ title.toLowerCase() }}</span>
-            </div>
+                <template #icon>
+                    <Plus class="h-4 w-4" />
+                </template>
+            </EmptyState>
         </div>
     </div>
 </template>

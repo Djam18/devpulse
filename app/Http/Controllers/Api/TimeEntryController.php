@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\TimeEntries\ExportTimeEntriesAction;
 use App\Actions\TimeEntries\LogManualTimeAction;
 use App\Actions\TimeEntries\StartTimerAction;
 use App\Actions\TimeEntries\StopTimerAction;
@@ -98,8 +99,29 @@ class TimeEntryController extends Controller
     {
         Gate::authorize('delete', $timeEntry);
 
+        $description = $timeEntry->task?->title ?? $timeEntry->description ?? 'Session de temps';
         $timeEntry->delete();
 
-        return response()->json(['message' => 'Time entry deleted successfully.']);
+        return response()->json([
+            'message' => "La session « {$description} » a été supprimée avec succès.",
+        ]);
+    }
+
+    /**
+     * Export the authenticated user's time entries to CSV or XLSX format.
+     */
+    public function export(Request $request, ExportTimeEntriesAction $action): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
+            'project_id' => ['nullable', 'integer'],
+            'format' => ['nullable', 'string', 'in:csv,xlsx'],
+        ]);
+
+        return $action->execute($user, $validated);
     }
 }

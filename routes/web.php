@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\TimeEntryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectPageController;
 use App\Http\Controllers\TaskPageController;
 use App\Mail\LongRunningTimerMail;
 use App\Mail\WeeklySummaryMail;
@@ -27,6 +29,8 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tasks', [TaskPageController::class, 'index'])->name('tasks.index');
+    Route::get('/projects', [ProjectPageController::class, 'index'])->name('projects.index');
+    Route::get('/time-entries/export', [TimeEntryController::class, 'export'])->name('time-entries.export');
 });
 
 Route::middleware('auth')->group(function () {

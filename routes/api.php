@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TimeEntryController;
 use Illuminate\Support\Facades\Route;
@@ -20,13 +22,21 @@ Route::middleware(['auth:sanctum'])->name('api.')->group(function () {
         // Tasks & Kanban
         Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
         Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+        Route::post('/tasks/reorder', [TaskController::class, 'reorder'])->name('tasks.reorder');
         Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
         Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
+        Route::post('/tasks/{task}/pomodoro', [TaskController::class, 'completePomodoro'])->name('tasks.pomodoro');
         Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+
+        // Clients & Projects
+        Route::apiResource('clients', ClientController::class);
+        Route::apiResource('projects', ProjectController::class);
     });
 
     // Unversioned fallback aliases (backward-compatibility)
+    Route::apiResource('clients', ClientController::class);
+    Route::apiResource('projects', ProjectController::class);
     Route::get('/time-entries/active', [TimeEntryController::class, 'active'])->name('time-entries.active');
     Route::post('/time-entries/start', [TimeEntryController::class, 'start'])->name('time-entries.start');
     Route::patch('/time-entries/{timeEntry}/stop', [TimeEntryController::class, 'stop'])->name('time-entries.stop');
@@ -36,8 +46,10 @@ Route::middleware(['auth:sanctum'])->name('api.')->group(function () {
 
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
     Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+    Route::post('/tasks/reorder', [TaskController::class, 'reorder'])->name('tasks.reorder');
     Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
+    Route::post('/tasks/{task}/pomodoro', [TaskController::class, 'completePomodoro'])->name('tasks.pomodoro');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 });
